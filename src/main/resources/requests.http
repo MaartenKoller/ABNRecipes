@@ -1,0 +1,41 @@
+### GET request to example server
+POST http://localhost:9000/recipes
+Content-Type: application/json
+
+{
+  "recipes": [
+    {
+      "name": "Maarten's Toetje",
+      "isVegetarian": true,
+      "prepTime": 15,
+      "cookTime": 0,
+      "ingredients": [
+        "1 pint Ben & Jerry's Chocolate Ice Cream",
+        "1 pint Ben & Jerry's Vanilla Ice Cream",
+        "1 pint Ben & Jerry's Chocolate Chip Cookie Dough Ice Cream",
+        "1 pint Ben & Jerry's Chocolate Fudge Brownie Ice Cream",
+        "1 pint Ben & Jerry's Chocolate Peanut Butter Cup Ice Cream",
+        "1 pint Ben & Jerry's Chocolate Chunk Cookie Dough Ice Cream"
+      ],
+      "instructions": "Mix all ice creams together and serve.",
+      "servings": 6
+    },
+    {
+      "name": "Pasta Carbonara",
+      "isVegetarian": false,
+      "servings": 4,
+      "prepTime": 30,
+      "cookTime": 30,
+      "ingredients": ["pasta", "eggs", "bacon", "parmesan cheese", "black pepper"],
+      "instructions": "Cook pasta. Fry bacon. Mix eggs and cheese. Combine all ingredients."
+    }
+  ]
+}
+
+### Search for recipes with 4 servings
+POST http://localhost:9000/recipes/search
+Content-Type: application/json
+
+{
+  "minServings": 4
+}

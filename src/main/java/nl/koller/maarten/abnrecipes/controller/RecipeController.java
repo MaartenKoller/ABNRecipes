@@ -2,6 +2,7 @@ package nl.koller.maarten.abnrecipes.controller;
 
 import nl.koller.maarten.abnrecipes.model.Recipe;
 import nl.koller.maarten.abnrecipes.model.RecipeRequest;
+import nl.koller.maarten.abnrecipes.model.RecipeSearchRequest;
 import nl.koller.maarten.abnrecipes.service.RecipeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
+@CrossOrigin(origins = "http://localhost:8080")
 @RequestMapping("/recipes")
 public class RecipeController {
 
@@ -51,5 +53,11 @@ public class RecipeController {
         } else {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    @PostMapping("/search")
+    public ResponseEntity<List<Recipe>> searchRecipes(@RequestBody RecipeSearchRequest searchRequest) {
+        List<Recipe> matchingRecipes = recipeService.searchRecipes(searchRequest);
+        return ResponseEntity.ok(matchingRecipes);
     }
 }

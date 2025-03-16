@@ -1,6 +1,7 @@
 package nl.koller.maarten.abnrecipes.service;
 
 import nl.koller.maarten.abnrecipes.model.Recipe;
+import nl.koller.maarten.abnrecipes.model.RecipeSearchRequest;
 import nl.koller.maarten.abnrecipes.repository.RecipeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -9,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class RecipeService {
@@ -71,5 +73,85 @@ public class RecipeService {
                     return recipeRepository.save(existingRecipe);
                 })
                 .orElse(null);
+    }
+
+    public List<Recipe> searchRecipes(RecipeSearchRequest searchRequest) {
+        List<Recipe> allRecipes = recipeRepository.findAll();
+
+        return allRecipes.stream()
+                .filter(recipe -> filterByVegetarian(recipe, searchRequest.getVegetarian()))
+                .filter(recipe -> filterByMinServings(recipe, searchRequest.getMinServings()))
+                .filter(recipe -> filterByMaxPrepTime(recipe, searchRequest.getMaxPrepTime()))
+                .filter(recipe -> filterByMaxCookTime(recipe, searchRequest.getMaxCookTime()))
+                .filter(recipe -> filterByIncludeIngredients(recipe, searchRequest.getIncludeIngredients()))
+                .filter(recipe -> filterByExcludeIngredients(recipe, searchRequest.getExcludeIngredients()))
+                .filter(recipe -> filterByInstructionsContain(recipe, searchRequest.getInstructionsContain()))
+                .collect(Collectors.toList());
+    }
+
+    private boolean filterByVegetarian(Recipe recipe, Boolean vegetarian) {
+        if (vegetarian == null) {
+            return true; // No filter applied
+        }
+        return recipe.isVegetarian() == vegetarian;
+    }
+
+    private boolean filterByMinServings(Recipe recipe, Integer minServings) {
+        if (minServings == null) {
+            return true; // No filter applied
+        }
+        return recipe.getServings() >= minServings;
+    }
+
+    private boolean filterByMaxPrepTime(Recipe recipe, Integer maxPrepTime) {
+        if (maxPrepTime == null) {
+            return true; // No filter applied
+        }
+        return recipe.getPrepTime() <= maxPrepTime;
+    }
+
+    private boolean filterByMaxCookTime(Recipe recipe, Integer maxCookTime) {
+        if (maxCookTime == null) {
+            return true; // No filter applied
+        }
+        return recipe.getCookTime() <= maxCookTime;
+    }
+
+    private boolean filterByIncludeIngredients(Recipe recipe, List<String> includeIngredients) {
+        if (includeIngredients == null || includeIngredients.isEmpty()) {
+            return true; // No filter applied
+        }
+
+        List<String> recipeIngredients = recipe.getIngredients();
+        return includeIngredients.stream()
+                .allMatch(ingredient ->
+                        recipeIngredients.stream()
+                                .anyMatch(recipeIngredient ->
+                                        recipeIngredient.toLowerCase().contains(ingredient.toLowerCase())
+                                )
+                );
+    }
+
+    private boolean filterByExcludeIngredients(Recipe recipe, List<String> excludeIngredients) {
+        if (excludeIngredients == null || excludeIngredients.isEmpty()) {
+            return true; // No filter applied
+        }
+
+        List<String> recipeIngredients = recipe.getIngredients();
+        return excludeIngredients.stream()
+                .noneMatch(ingredient ->
+                        recipeIngredients.stream()
+                                .anyMatch(recipeIngredient ->
+                                        recipeIngredient.toLowerCase().contains(ingredient.toLowerCase())
+                                )
+                );
+    }
+
+    private boolean filterByInstructionsContain(Recipe recipe, String instructionsContain) {
+        if (instructionsContain == null || instructionsContain.isEmpty()) {
+            return true; // No filter applied
+        }
+
+        return recipe.getInstructions().toLowerCase().contains(instructionsContain.toLowerCase());
     }
 }
