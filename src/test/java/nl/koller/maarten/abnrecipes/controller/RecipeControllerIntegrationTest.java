@@ -35,9 +35,9 @@ public class RecipeControllerIntegrationTest {
 
         assert recipes != null;
         assertFalse(recipes.isEmpty());
-        assertEquals(3, recipes.size());
-        assertEquals("Pasta Carbonara", recipes.get(0).getName());
-        assertEquals("Chicken Curry", recipes.get(1).getName());
-        assertEquals("Caesar Salad", recipes.get(2).getName());
+        assertEquals(10, recipes.size());
+        assertEquals("Spaghetti Bolognese", recipes.get(0).getName());
+        assertEquals("Chicken Alfredo Pasta", recipes.get(6).getName());
+        assertEquals("Roasted Ratatouille", recipes.get(9).getName());
     }
 }
