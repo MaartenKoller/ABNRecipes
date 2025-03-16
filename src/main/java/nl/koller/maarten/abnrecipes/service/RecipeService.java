@@ -45,4 +45,13 @@ public class RecipeService {
 
         return savedRecipes;
     }
+
+    @Transactional
+    public boolean deleteRecipe(Long id) {
+        if (recipeRepository.existsById(id)) {
+            recipeRepository.deleteById(id);
+            return true;
+        }
+        return false;
+    }
 }

@@ -32,4 +32,14 @@ public class RecipeController {
         List<Recipe> addedRecipes = recipeService.addRecipes(request.getRecipes());
         return ResponseEntity.status(HttpStatus.CREATED).body(addedRecipes);
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteRecipe(@PathVariable Long id) {
+        boolean deleted = recipeService.deleteRecipe(id);
+        if (deleted) {
+            return ResponseEntity.noContent().build();
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
 }

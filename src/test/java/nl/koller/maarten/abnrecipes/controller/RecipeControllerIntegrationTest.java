@@ -2,14 +2,19 @@ package nl.koller.maarten.abnrecipes.controller;
 
 import nl.koller.maarten.abnrecipes.model.Recipe;
 import nl.koller.maarten.abnrecipes.repository.RecipeRepository;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
 
 import java.io.IOException;
@@ -30,17 +35,25 @@ public class RecipeControllerIntegrationTest {
     private RestClient.Builder restClientBuilder;
 
     @Autowired
-    private RecipeRepository recipeRepository;
+    private  RecipeRepository recipeRepository;
+
+    private RestClient restClient;
+
+    // Store the initial state of the database
+    private List<Recipe> initialRecipes;
+
+
+    @BeforeEach
+    public void setup() {
+        restClient = restClientBuilder.baseUrl("http://localhost:" + port).build();
+
+        // Save the initial state of the database
+        initialRecipes = recipeRepository.findAll();
+    }
 
     @Test
     public void testGetAllRecipes() {
-        RestClient restClient = restClientBuilder.baseUrl("http://localhost:" + port).build();
-
-        List<Recipe> recipes = restClient.get()
-                .uri("/recipes")
-                .retrieve()
-                .body(new ParameterizedTypeReference<List<Recipe>>() {
-                });
+        List<Recipe> recipes = getRecipes();
 
         assert recipes != null;
         assertFalse(recipes.isEmpty());
@@ -52,17 +65,11 @@ public class RecipeControllerIntegrationTest {
 
     @Test
     public void testAddRecipe() throws IOException {
-        RestClient restClient = restClientBuilder.baseUrl("http://localhost:" + port).build();
-
         // First, verify we have 10 recipes initially
-        List<Recipe> initialRecipes = restClient.get()
-                .uri("/recipes")
-                .retrieve()
-                .body(new ParameterizedTypeReference<List<Recipe>>() {
-                });
+        List<Recipe> recipes = getRecipes();
 
-        assert initialRecipes != null;
-        assertEquals(10, initialRecipes.size());
+        assert recipes != null;
+        int currentAmount = recipes.size();
 
         // Check if "Maarten's Toetje" already exists and delete it if it does
         Optional<Recipe> existingRecipe = recipeRepository.findByName("Maarten's Toetje");
@@ -87,14 +94,10 @@ public class RecipeControllerIntegrationTest {
         assertTrue(addedRecipes.getFirst().isVegetarian());
 
         // Verify we now have 11 recipes
-        List<Recipe> updatedRecipes = restClient.get()
-                .uri("/recipes")
-                .retrieve()
-                .body(new ParameterizedTypeReference<List<Recipe>>() {
-                });
+        List<Recipe> updatedRecipes = getRecipes();
 
         assert updatedRecipes != null;
-        assertEquals(11, updatedRecipes.size());
+        assertEquals(currentAmount+1, updatedRecipes.size());
 
         // Find the added recipe in the list
         Recipe addedRecipe = updatedRecipes.stream()
@@ -113,5 +116,58 @@ public class RecipeControllerIntegrationTest {
         assertTrue(ingredients.contains("1 pint Ben & Jerry's Chocolate Ice Cream"));
         assertTrue(ingredients.contains("1 pint Ben & Jerry's Vanilla Ice Cream"));
         assertTrue(ingredients.contains("1 pint Ben & Jerry's Chocolate Chip Cookie Dough Ice Cream"));
+
+        // Reset the database by removing the added recipe
+        Optional<Recipe> maartenToetje = recipeRepository.findByName("Maarten's Toetje");
+        maartenToetje.ifPresent(recipe -> recipeRepository.delete(recipe));
+    }
+
+    @Test
+    public void testDeleteRecipe() {
+        // First, get all recipes
+        List<Recipe> recipes = getRecipes();
+
+        assert recipes != null;
+        assertFalse(recipes.isEmpty());
+        int initialCount = recipes.size();
+
+        // Get the ID of the first recipe
+        Long recipeIdToDelete = recipes.getFirst().getId();
+
+        // Delete the recipe
+        restClient.delete()
+                .uri("/recipes/" + recipeIdToDelete)
+                .retrieve()
+                .toBodilessEntity();
+
+        // Verify the recipe was deleted
+        List<Recipe> remainingRecipes = getRecipes();
+
+        assert remainingRecipes != null;
+        assertEquals(initialCount - 1, remainingRecipes.size());
+
+        // Verify the deleted recipe is no longer in the list
+        boolean recipeStillExists = remainingRecipes.stream()
+                .anyMatch(recipe -> recipeIdToDelete.equals(recipe.getId()));
+        assertFalse(recipeStillExists);
+
+        // Try to delete a non-existent recipe
+        try {
+            restClient.delete()
+                    .uri("/recipes/999999")
+                    .retrieve()
+                    .toBodilessEntity();
+            fail("Expected HttpClientErrorException.NotFound");
+        } catch (HttpClientErrorException e) {
+            assertEquals(HttpStatus.NOT_FOUND, e.getStatusCode());
+        }
+    }
+
+    private List<Recipe> getRecipes() {
+        return restClient.get()
+                .uri("/recipes")
+                .retrieve()
+                .body(new ParameterizedTypeReference<List<Recipe>>() {
+                });
     }
 }
