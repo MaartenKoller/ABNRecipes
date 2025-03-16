@@ -12,7 +12,6 @@ import java.util.Optional;
 
 @Service
 public class RecipeService {
-
     private final RecipeRepository recipeRepository;
 
     @Autowired
@@ -53,5 +52,24 @@ public class RecipeService {
             return true;
         }
         return false;
+    }
+
+    @Transactional
+    public Recipe updateRecipe(Long id, Recipe updatedRecipe) {
+        return recipeRepository.findById(id)
+                .map(existingRecipe -> {
+                    // Update the existing recipe with new values
+                    existingRecipe.setName(updatedRecipe.getName());
+                    existingRecipe.setVegetarian(updatedRecipe.isVegetarian());
+                    existingRecipe.setPrepTime(updatedRecipe.getPrepTime());
+                    existingRecipe.setCookTime(updatedRecipe.getCookTime());
+                    existingRecipe.setIngredients(updatedRecipe.getIngredients());
+                    existingRecipe.setInstructions(updatedRecipe.getInstructions());
+                    existingRecipe.setServings(updatedRecipe.getServings());
+
+                    // Save and return the updated recipe
+                    return recipeRepository.save(existingRecipe);
+                })
+                .orElse(null);
     }
 }

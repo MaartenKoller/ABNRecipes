@@ -2,8 +2,6 @@ package nl.koller.maarten.abnrecipes.controller;
 
 import nl.koller.maarten.abnrecipes.model.Recipe;
 import nl.koller.maarten.abnrecipes.repository.RecipeRepository;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,7 +51,7 @@ public class RecipeControllerIntegrationTest {
 
     @Test
     public void testGetAllRecipes() {
-        List<Recipe> recipes = getRecipes();
+        List<Recipe> recipes = getAllRecipes();
 
         assert recipes != null;
         assertFalse(recipes.isEmpty());
@@ -65,8 +63,7 @@ public class RecipeControllerIntegrationTest {
 
     @Test
     public void testAddRecipe() throws IOException {
-        // First, verify we have 10 recipes initially
-        List<Recipe> recipes = getRecipes();
+        List<Recipe> recipes = getAllRecipes();
 
         assert recipes != null;
         int currentAmount = recipes.size();
@@ -94,7 +91,7 @@ public class RecipeControllerIntegrationTest {
         assertTrue(addedRecipes.getFirst().isVegetarian());
 
         // Verify we now have 11 recipes
-        List<Recipe> updatedRecipes = getRecipes();
+        List<Recipe> updatedRecipes = getAllRecipes();
 
         assert updatedRecipes != null;
         assertEquals(currentAmount+1, updatedRecipes.size());
@@ -124,8 +121,7 @@ public class RecipeControllerIntegrationTest {
 
     @Test
     public void testDeleteRecipe() {
-        // First, get all recipes
-        List<Recipe> recipes = getRecipes();
+        List<Recipe> recipes = getAllRecipes();
 
         assert recipes != null;
         assertFalse(recipes.isEmpty());
@@ -141,7 +137,7 @@ public class RecipeControllerIntegrationTest {
                 .toBodilessEntity();
 
         // Verify the recipe was deleted
-        List<Recipe> remainingRecipes = getRecipes();
+        List<Recipe> remainingRecipes = getAllRecipes();
 
         assert remainingRecipes != null;
         assertEquals(initialCount - 1, remainingRecipes.size());
@@ -163,7 +159,80 @@ public class RecipeControllerIntegrationTest {
         }
     }
 
-    private List<Recipe> getRecipes() {
+    @Test
+    public void testUpdateRecipe() {
+        List<Recipe> recipes = getAllRecipes();
+        int updatedPrepTime = 111;
+        int updatedCookTime = 222;
+        int servingsAmount = 333;
+
+        assert recipes != null;
+        assertFalse(recipes.isEmpty());
+
+        // Get the first recipe to update
+        Recipe recipeToUpdate = recipes.getFirst();
+        Long recipeId = recipeToUpdate.getId();
+
+        // Create an updated version of the recipe
+        Recipe updatedRecipeData = new Recipe();
+        updatedRecipeData.setId(recipeId);
+        updatedRecipeData.setName(recipeToUpdate.getName() + " (Updated)");
+        updatedRecipeData.setVegetarian(!recipeToUpdate.isVegetarian()); // Toggle vegetarian status
+        updatedRecipeData.setPrepTime(updatedPrepTime);
+        updatedRecipeData.setCookTime(updatedCookTime);
+        updatedRecipeData.setIngredients(recipeToUpdate.getIngredients());
+        updatedRecipeData.setInstructions(recipeToUpdate.getInstructions());
+        updatedRecipeData.setServings(servingsAmount);
+
+        // Update the recipe
+        Recipe updatedRecipe = restClient.put()
+                .uri("/recipes/" + recipeId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(updatedRecipeData)
+                .retrieve()
+                .body(Recipe.class);
+
+        // Verify the recipe was updated correctly
+        assertNotNull(updatedRecipe);
+        assertEquals(recipeId, updatedRecipe.getId());
+        assertEquals(recipeToUpdate.getName() + " (Updated)", updatedRecipe.getName());
+        assertEquals(!recipeToUpdate.isVegetarian(), updatedRecipe.isVegetarian());
+        assertEquals(updatedPrepTime, updatedRecipe.getPrepTime());
+        assertEquals(updatedCookTime, updatedRecipe.getCookTime());
+        assertEquals(servingsAmount, updatedRecipe.getServings());
+
+        // Verify the update is reflected in the database
+        List<Recipe> updatedRecipes = getAllRecipes();
+        Recipe updatedRecipeInList = updatedRecipes.stream()
+                .filter(r -> r.getId().equals(recipeId))
+                .findFirst()
+                .orElse(null);
+
+        assertNotNull(updatedRecipeInList);
+        assertEquals(recipeToUpdate.getName() + " (Updated)", updatedRecipeInList.getName());
+        assertEquals(!recipeToUpdate.isVegetarian(), updatedRecipeInList.isVegetarian());
+        assertEquals(updatedPrepTime, updatedRecipeInList.getPrepTime());
+        assertEquals(updatedCookTime, updatedRecipeInList.getCookTime());
+        assertEquals(servingsAmount, updatedRecipeInList.getServings());
+
+        // Try to update a non-existent recipe
+        try {
+            restClient.put()
+                    .uri("/recipes/999999")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(updatedRecipeData)
+                    .retrieve()
+                    .body(Recipe.class);
+            fail("Expected HttpClientErrorException.NotFound");
+        } catch (HttpClientErrorException e) {
+            assertEquals(HttpStatus.NOT_FOUND, e.getStatusCode());
+        }
+
+        // Reset the recipe to its original state
+        recipeRepository.save(recipeToUpdate);
+    }
+
+    private List<Recipe> getAllRecipes() {
         return restClient.get()
                 .uri("/recipes")
                 .retrieve()
