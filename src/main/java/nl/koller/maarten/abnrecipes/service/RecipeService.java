@@ -27,6 +27,10 @@ public class RecipeService {
 
     @Transactional
     public List<Recipe> addRecipes(List<Recipe> recipes) {
+        if (recipes == null) {
+            return new ArrayList<>(); // Return empty list if input is null
+        }
+
         List<Recipe> savedRecipes = new ArrayList<>();
 
         for (Recipe recipe : recipes) {
@@ -58,6 +62,10 @@ public class RecipeService {
 
     @Transactional
     public Recipe updateRecipe(Long id, Recipe updatedRecipe) {
+        if (updatedRecipe == null) {
+            return null;
+        }
+
         return recipeRepository.findById(id)
                 .map(existingRecipe -> {
                     // Update the existing recipe with new values
@@ -76,6 +84,11 @@ public class RecipeService {
     }
 
     public List<Recipe> searchRecipes(RecipeSearchRequest searchRequest) {
+        // Handle null search request by returning all recipes
+        if (searchRequest == null) {
+            return recipeRepository.findAll();
+        }
+
         List<Recipe> allRecipes = recipeRepository.findAll();
 
         return allRecipes.stream()
