@@ -1,0 +1,20 @@
+{
+  "recipes": [
+    {
+      "name": "Maarten's Toetje",
+      "isVegetarian": true,
+      "prepTime": 15,
+      "cookTime": 0,
+      "ingredients": [
+        "1 pint Ben & Jerry's Chocolate Ice Cream",
+        "1 pint Ben & Jerry's Vanilla Ice Cream",
+        "1 pint Ben & Jerry's Chocolate Chip Cookie Dough Ice Cream",
+        "1 pint Ben & Jerry's Chocolate Fudge Brownie Ice Cream",
+        "1 pint Ben & Jerry's Chocolate Peanut Butter Cup Ice Cream",
+        "1 pint Ben & Jerry's Chocolate Chunk Cookie Dough Ice Cream"
+      ],
+      "instructions": "Mix all ice creams together and serve.",
+      "servings": 6
+    }
+  ]
+}

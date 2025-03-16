@@ -1,12 +1,12 @@
 package nl.koller.maarten.abnrecipes.controller;
 
 import nl.koller.maarten.abnrecipes.model.Recipe;
+import nl.koller.maarten.abnrecipes.model.RecipeRequest;
 import nl.koller.maarten.abnrecipes.service.RecipeService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -25,5 +25,11 @@ public class RecipeController {
     public ResponseEntity<List<Recipe>> getAllRecipes() {
         List<Recipe> recipes = recipeService.getAllRecipes();
         return ResponseEntity.ok(recipes);
+    }
+
+    @PostMapping
+    public ResponseEntity<List<Recipe>> addRecipes(@RequestBody RecipeRequest request) {
+        List<Recipe> addedRecipes = recipeService.addRecipes(request.getRecipes());
+        return ResponseEntity.status(HttpStatus.CREATED).body(addedRecipes);
     }
 }
