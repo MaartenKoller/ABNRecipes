@@ -34,30 +34,31 @@ class RecipeServiceTest {
 
     @BeforeEach
     void setUp() {
-        // Setup test data
-        vegetarianRecipe = new Recipe();
-        vegetarianRecipe.setId(1L);
-        vegetarianRecipe.setName("Vegetarian Pasta");
-        vegetarianRecipe.setVegetarian(true);
-        vegetarianRecipe.setPrepTime(15);
-        vegetarianRecipe.setCookTime(20);
-        vegetarianRecipe.setServings(4);
-        vegetarianRecipe.setIngredients(Arrays.asList("pasta", "tomato sauce", "garlic", "basil"));
-        vegetarianRecipe.setInstructions("Boil pasta. Mix with sauce. Add herbs.");
+        // Setup test data using Builder pattern
+        vegetarianRecipe = Recipe.builder()
+                .id(1L)
+                .name("Vegetarian Pasta")
+                .isVegetarian(true)
+                .prepTime(15)
+                .cookTime(20)
+                .servings(4)
+                .ingredients(Arrays.asList("pasta", "tomato sauce", "garlic", "basil"))
+                .instructions("Boil pasta. Mix with sauce. Add herbs.")
+                .build();
 
-        nonVegetarianRecipe = new Recipe();
-        nonVegetarianRecipe.setId(2L);
-        nonVegetarianRecipe.setName("Beef Stew");
-        nonVegetarianRecipe.setVegetarian(false);
-        nonVegetarianRecipe.setPrepTime(30);
-        nonVegetarianRecipe.setCookTime(120);
-        nonVegetarianRecipe.setServings(6);
-        nonVegetarianRecipe.setIngredients(Arrays.asList("beef", "potatoes", "carrots", "onion", "beef stock"));
-        nonVegetarianRecipe.setInstructions("Brown beef. Add vegetables and stock. Simmer for 2 hours.");
+        nonVegetarianRecipe = Recipe.builder()
+                .id(2L)
+                .name("Beef Stew")
+                .isVegetarian(false)
+                .prepTime(30)
+                .cookTime(120)
+                .servings(6)
+                .ingredients(Arrays.asList("beef", "potatoes", "carrots", "onion", "beef stock"))
+                .instructions("Brown beef. Add vegetables and stock. Simmer for 2 hours.")
+                .build();
 
         allRecipes = Arrays.asList(vegetarianRecipe, nonVegetarianRecipe);
     }
-
     @Test
     void getAllRecipes_ShouldReturnAllRecipes() {
         // Arrange
@@ -173,14 +174,15 @@ class RecipeServiceTest {
     @Test
     void updateRecipe_WhenExists_ShouldUpdateAndReturn() {
         // Arrange
-        Recipe updatedRecipe = new Recipe();
-        updatedRecipe.setName("Updated Recipe");
-        updatedRecipe.setVegetarian(true);
-        updatedRecipe.setPrepTime(10);
-        updatedRecipe.setCookTime(15);
-        updatedRecipe.setServings(2);
-        updatedRecipe.setIngredients(Arrays.asList("ingredient1", "ingredient2"));
-        updatedRecipe.setInstructions("Updated instructions");
+        Recipe updatedRecipe = Recipe.builder()
+                .name("Updated Recipe")
+                .isVegetarian(true)
+                .prepTime(10)
+                .cookTime(15)
+                .servings(2)
+                .ingredients(Arrays.asList("ingredient1", "ingredient2"))
+                .instructions("Updated instructions")
+                .build();
 
         when(recipeRepository.findById(1L)).thenReturn(Optional.of(vegetarianRecipe));
         when(recipeRepository.save(any(Recipe.class))).thenAnswer(invocation -> invocation.getArgument(0));

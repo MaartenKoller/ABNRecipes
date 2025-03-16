@@ -174,15 +174,16 @@ public class RecipeControllerIntegrationTest {
         Long recipeId = recipeToUpdate.getId();
 
         // Create an updated version of the recipe
-        Recipe updatedRecipeData = new Recipe();
-        updatedRecipeData.setId(recipeId);
-        updatedRecipeData.setName(recipeToUpdate.getName() + " (Updated)");
-        updatedRecipeData.setVegetarian(!recipeToUpdate.isVegetarian()); // Toggle vegetarian status
-        updatedRecipeData.setPrepTime(updatedPrepTime);
-        updatedRecipeData.setCookTime(updatedCookTime);
-        updatedRecipeData.setIngredients(recipeToUpdate.getIngredients());
-        updatedRecipeData.setInstructions(recipeToUpdate.getInstructions());
-        updatedRecipeData.setServings(servingsAmount);
+        Recipe updatedRecipeData = Recipe.builder()
+                .id(recipeId)
+                .name(recipeToUpdate.getName() + " (Updated)")
+                .isVegetarian(!recipeToUpdate.isVegetarian()) // Toggle vegetarian status
+                .prepTime(updatedPrepTime)
+                .cookTime(updatedCookTime)
+                .ingredients(recipeToUpdate.getIngredients())
+                .instructions(recipeToUpdate.getInstructions())
+                .servings(servingsAmount)
+                .build();
 
         // Update the recipe
         Recipe updatedRecipe = restClient.put()
