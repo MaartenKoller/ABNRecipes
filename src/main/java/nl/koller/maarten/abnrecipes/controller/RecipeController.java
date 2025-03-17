@@ -57,7 +57,6 @@ public class RecipeController {
 
     @PostMapping("/search")
     public ResponseEntity<List<Recipe>> searchRecipes(@RequestBody RecipeSearchRequest searchRequest) {
-        List<Recipe> matchingRecipes = recipeService.searchRecipes(searchRequest);
-        return ResponseEntity.ok(matchingRecipes);
+        return ResponseEntity.ok(recipeService.searchRecipes(searchRequest));
     }
 }

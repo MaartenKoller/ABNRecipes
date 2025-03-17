@@ -1,5 +1,6 @@
 package nl.koller.maarten.abnrecipes.service;
 
+import nl.koller.maarten.abnrecipes.model.NumericSearchCriteria;
 import nl.koller.maarten.abnrecipes.model.Recipe;
 import nl.koller.maarten.abnrecipes.model.RecipeSearchRequest;
 import nl.koller.maarten.abnrecipes.repository.RecipeRepository;
@@ -29,7 +30,6 @@ class RecipeServiceTest {
     private RecipeService recipeService;
 
     private Recipe vegetarianRecipe;
-    private Recipe nonVegetarianRecipe;
     private List<Recipe> allRecipes;
 
     @BeforeEach
@@ -46,7 +46,7 @@ class RecipeServiceTest {
                 .instructions("Boil pasta. Mix with sauce. Add herbs.")
                 .build();
 
-        nonVegetarianRecipe = Recipe.builder()
+        Recipe nonVegetarianRecipe = Recipe.builder()
                 .id(2L)
                 .name("Beef Stew")
                 .isVegetarian(false)
@@ -216,229 +216,6 @@ class RecipeServiceTest {
     }
 
     @Test
-    void searchRecipes_WithVegetarianFilter_ShouldReturnOnlyVegetarian() {
-        // Arrange
-        when(recipeRepository.findAll()).thenReturn(allRecipes);
-        RecipeSearchRequest searchRequest = new RecipeSearchRequest();
-        searchRequest.setVegetarian(true);
-
-        // Act
-        List<Recipe> result = recipeService.searchRecipes(searchRequest);
-
-        // Assert
-        assertEquals(1, result.size());
-        assertTrue(result.getFirst().isVegetarian());
-        assertEquals("Vegetarian Pasta", result.getFirst().getName());
-    }
-
-    @Test
-    void searchRecipes_WithMinServings_ShouldFilterCorrectly() {
-        // Arrange
-        when(recipeRepository.findAll()).thenReturn(allRecipes);
-        RecipeSearchRequest searchRequest = new RecipeSearchRequest();
-        searchRequest.setMinServings(5);
-
-        // Act
-        List<Recipe> result = recipeService.searchRecipes(searchRequest);
-
-        // Assert
-        assertEquals(1, result.size());
-        assertEquals("Beef Stew", result.getFirst().getName());
-    }
-
-    @Test
-    void searchRecipes_WithMaxPrepTime_ShouldFilterCorrectly() {
-        // Arrange
-        when(recipeRepository.findAll()).thenReturn(allRecipes);
-        RecipeSearchRequest searchRequest = new RecipeSearchRequest();
-        searchRequest.setMaxPrepTime(20);
-
-        // Act
-        List<Recipe> result = recipeService.searchRecipes(searchRequest);
-
-        // Assert
-        assertEquals(1, result.size());
-        assertEquals("Vegetarian Pasta", result.getFirst().getName());
-    }
-
-    @Test
-    void searchRecipes_WithMaxCookTime_ShouldFilterCorrectly() {
-        // Arrange
-        when(recipeRepository.findAll()).thenReturn(allRecipes);
-        RecipeSearchRequest searchRequest = new RecipeSearchRequest();
-        searchRequest.setMaxCookTime(30);
-
-        // Act
-        List<Recipe> result = recipeService.searchRecipes(searchRequest);
-
-        // Assert
-        assertEquals(1, result.size());
-        assertEquals("Vegetarian Pasta", result.getFirst().getName());
-    }
-
-    @Test
-    void searchRecipes_WithIncludeIngredients_ShouldFilterCorrectly() {
-        // Arrange
-        when(recipeRepository.findAll()).thenReturn(allRecipes);
-        RecipeSearchRequest searchRequest = new RecipeSearchRequest();
-        searchRequest.setIncludeIngredients(Arrays.asList("pasta", "tomato"));
-
-        // Act
-        List<Recipe> result = recipeService.searchRecipes(searchRequest);
-
-        // Assert
-        assertEquals(1, result.size());
-        assertEquals("Vegetarian Pasta", result.getFirst().getName());
-    }
-
-    @Test
-    void searchRecipes_WithExcludeIngredients_ShouldFilterCorrectly() {
-        // Arrange
-        when(recipeRepository.findAll()).thenReturn(allRecipes);
-        RecipeSearchRequest searchRequest = new RecipeSearchRequest();
-        searchRequest.setExcludeIngredients(Collections.singletonList("beef"));
-
-        // Act
-        List<Recipe> result = recipeService.searchRecipes(searchRequest);
-
-        // Assert
-        assertEquals(1, result.size());
-        assertEquals("Vegetarian Pasta", result.getFirst().getName());
-    }
-
-    @Test
-    void searchRecipes_WithInstructionsContain_ShouldFilterCorrectly() {
-        // Arrange
-        when(recipeRepository.findAll()).thenReturn(allRecipes);
-        RecipeSearchRequest searchRequest = new RecipeSearchRequest();
-        searchRequest.setInstructionsContain("simmer");
-
-        // Act
-        List<Recipe> result = recipeService.searchRecipes(searchRequest);
-
-        // Assert
-        assertEquals(1, result.size());
-        assertEquals("Beef Stew", result.getFirst().getName());
-    }
-
-    @Test
-    void searchRecipes_WithMultipleFilters_ShouldApplyAllFilters() {
-        // Arrange
-        when(recipeRepository.findAll()).thenReturn(allRecipes);
-        RecipeSearchRequest searchRequest = new RecipeSearchRequest();
-        searchRequest.setVegetarian(false);
-        searchRequest.setMinServings(5);
-        searchRequest.setIncludeIngredients(Arrays.asList("beef", "potatoes"));
-
-        // Act
-        List<Recipe> result = recipeService.searchRecipes(searchRequest);
-
-        // Assert
-        assertEquals(1, result.size());
-        assertEquals("Beef Stew", result.getFirst().getName());
-    }
-
-    @Test
-    void searchRecipes_WithNoMatchingRecipes_ShouldReturnEmptyList() {
-        // Arrange
-        when(recipeRepository.findAll()).thenReturn(allRecipes);
-        RecipeSearchRequest searchRequest = new RecipeSearchRequest();
-        searchRequest.setVegetarian(true);
-        searchRequest.setIncludeIngredients(Collections.singletonList("beef"));
-
-        // Act
-        List<Recipe> result = recipeService.searchRecipes(searchRequest);
-
-        // Assert
-        assertTrue(result.isEmpty());
-    }
-
-    @Test
-    void searchRecipes_WithNoFilters_ShouldReturnAllRecipes() {
-        // Arrange
-        when(recipeRepository.findAll()).thenReturn(allRecipes);
-        RecipeSearchRequest searchRequest = new RecipeSearchRequest();
-
-        // Act
-        List<Recipe> result = recipeService.searchRecipes(searchRequest);
-
-        // Assert
-        assertEquals(2, result.size());
-    }
-
-    @Test
-    void searchRecipes_WithCaseInsensitiveIngredientSearch_ShouldMatchCorrectly() {
-        // Arrange
-        when(recipeRepository.findAll()).thenReturn(allRecipes);
-        RecipeSearchRequest searchRequest = new RecipeSearchRequest();
-        searchRequest.setIncludeIngredients(Collections.singletonList("PASTA"));
-
-        // Act
-        List<Recipe> result = recipeService.searchRecipes(searchRequest);
-
-        // Assert
-        assertEquals(1, result.size());
-        assertEquals("Vegetarian Pasta", result.getFirst().getName());
-    }
-
-    @Test
-    void searchRecipes_WithCaseInsensitiveInstructionsSearch_ShouldMatchCorrectly() {
-        // Arrange
-        when(recipeRepository.findAll()).thenReturn(allRecipes);
-        RecipeSearchRequest searchRequest = new RecipeSearchRequest();
-        searchRequest.setInstructionsContain("BOIL");
-
-        // Act
-        List<Recipe> result = recipeService.searchRecipes(searchRequest);
-
-        // Assert
-        assertEquals(1, result.size());
-        assertEquals("Vegetarian Pasta", result.getFirst().getName());
-    }
-
-    @Test
-    void searchRecipes_WithPartialIngredientMatch_ShouldMatchCorrectly() {
-        // Arrange
-        when(recipeRepository.findAll()).thenReturn(allRecipes);
-        RecipeSearchRequest searchRequest = new RecipeSearchRequest();
-        searchRequest.setIncludeIngredients(Collections.singletonList("toma"));  // Partial match for "tomato sauce"
-
-        // Act
-        List<Recipe> result = recipeService.searchRecipes(searchRequest);
-
-        // Assert
-        assertEquals(1, result.size());
-        assertEquals("Vegetarian Pasta", result.getFirst().getName());
-    }
-
-    @Test
-    void searchRecipes_WithEmptyRepository_ShouldReturnEmptyList() {
-        // Arrange
-        when(recipeRepository.findAll()).thenReturn(Collections.emptyList());
-        RecipeSearchRequest searchRequest = new RecipeSearchRequest();
-        searchRequest.setVegetarian(true);
-
-        // Act
-        List<Recipe> result = recipeService.searchRecipes(searchRequest);
-
-        // Assert
-        assertTrue(result.isEmpty());
-    }
-
-    @Test
-    void searchRecipes_WithNullSearchRequest_ShouldHandleGracefully() {
-        // Arrange
-        when(recipeRepository.findAll()).thenReturn(allRecipes);
-
-        // Act
-        List<Recipe> result = recipeService.searchRecipes(null);
-
-        // Assert - This test verifies that the method doesn't throw an exception
-        // Note: The actual implementation might need to be updated to handle null search requests
-        assertNotNull(result);
-    }
-
-    @Test
     void addRecipes_WithNullList_ShouldHandleGracefully() {
         // Act & Assert
         assertDoesNotThrow(() -> recipeService.addRecipes(null));
@@ -465,67 +242,63 @@ class RecipeServiceTest {
     }
 
     @Test
-    void searchRecipes_WithEmptyIncludeIngredients_ShouldNotApplyFilter() {
+    void updateRecipe_WithNullUpdatedRecipe_ShouldHandleGracefully() {
+        // Act & Assert
+        assertDoesNotThrow(() -> recipeService.updateRecipe(1L, null));
+    }
+
+    @Test
+    void deleteRecipe_WithNullId_ShouldHandleGracefully() {
+        // Act & Assert
+        assertDoesNotThrow(() -> recipeService.deleteRecipe(null));
+    }
+
+    @Test
+    void searchRecipes_WithVegetarianFilter_ShouldReturnOnlyVegetarian() {
         // Arrange
         when(recipeRepository.findAll()).thenReturn(allRecipes);
-        RecipeSearchRequest searchRequest = new RecipeSearchRequest();
-        searchRequest.setIncludeIngredients(Collections.emptyList());
+        RecipeSearchRequest searchRequest = RecipeSearchRequest.builder()
+                .vegetarian(true)
+                .build();
 
         // Act
         List<Recipe> result = recipeService.searchRecipes(searchRequest);
 
         // Assert
-        assertEquals(2, result.size());
+        assertEquals(1, result.size());
+        assertTrue(result.getFirst().isVegetarian());
+        assertEquals("Vegetarian Pasta", result.getFirst().getName());
     }
 
     @Test
-    void searchRecipes_WithEmptyExcludeIngredients_ShouldNotApplyFilter() {
+    void searchRecipes_WithMinServings_ShouldFilterCorrectly() {
         // Arrange
         when(recipeRepository.findAll()).thenReturn(allRecipes);
-        RecipeSearchRequest searchRequest = new RecipeSearchRequest();
-        searchRequest.setExcludeIngredients(Collections.emptyList());
+        RecipeSearchRequest searchRequest = RecipeSearchRequest.builder()
+                .servings(NumericSearchCriteria.builder()
+                        .value(5)
+                        .comparisonType(NumericSearchCriteria.ComparisonType.MINIMUM)
+                        .build())
+                .build();
 
         // Act
         List<Recipe> result = recipeService.searchRecipes(searchRequest);
 
         // Assert
-        assertEquals(2, result.size());
+        assertEquals(1, result.size());
+        assertEquals("Beef Stew", result.getFirst().getName());
     }
 
     @Test
-    void searchRecipes_WithEmptyInstructionsContain_ShouldNotApplyFilter() {
+    void searchRecipes_WithMaxPrepTime_ShouldFilterCorrectly() {
         // Arrange
         when(recipeRepository.findAll()).thenReturn(allRecipes);
-        RecipeSearchRequest searchRequest = new RecipeSearchRequest();
-        searchRequest.setInstructionsContain("");
-
-        // Act
-        List<Recipe> result = recipeService.searchRecipes(searchRequest);
-
-        // Assert
-        assertEquals(2, result.size());
-    }
-
-    @Test
-    void searchRecipes_WithExactServingsMatch_ShouldFilterCorrectly() {
-        // Arrange
-        when(recipeRepository.findAll()).thenReturn(allRecipes);
-        RecipeSearchRequest searchRequest = new RecipeSearchRequest();
-        searchRequest.setMinServings(4);
-
-        // Act
-        List<Recipe> result = recipeService.searchRecipes(searchRequest);
-
-        // Assert
-        assertEquals(2, result.size());
-    }
-
-    @Test
-    void searchRecipes_WithExactPrepTimeMatch_ShouldFilterCorrectly() {
-        // Arrange
-        when(recipeRepository.findAll()).thenReturn(allRecipes);
-        RecipeSearchRequest searchRequest = new RecipeSearchRequest();
-        searchRequest.setMaxPrepTime(15);
+        RecipeSearchRequest searchRequest = RecipeSearchRequest.builder()
+                .prepTime(NumericSearchCriteria.builder()
+                        .value(20)
+                        .comparisonType(NumericSearchCriteria.ComparisonType.MAXIMUM)
+                        .build())
+                .build();
 
         // Act
         List<Recipe> result = recipeService.searchRecipes(searchRequest);
@@ -536,11 +309,230 @@ class RecipeServiceTest {
     }
 
     @Test
-    void searchRecipes_WithExactCookTimeMatch_ShouldFilterCorrectly() {
+    void searchRecipes_WithMaxCookTime_ShouldFilterCorrectly() {
         // Arrange
         when(recipeRepository.findAll()).thenReturn(allRecipes);
-        RecipeSearchRequest searchRequest = new RecipeSearchRequest();
-        searchRequest.setMaxCookTime(20);
+        RecipeSearchRequest searchRequest = RecipeSearchRequest.builder()
+                .cookTime(NumericSearchCriteria.builder()
+                        .value(30)
+                        .comparisonType(NumericSearchCriteria.ComparisonType.MAXIMUM)
+                        .build())
+                .build();
+
+        // Act
+        List<Recipe> result = recipeService.searchRecipes(searchRequest);
+
+        // Assert
+        assertEquals(1, result.size());
+        assertEquals("Vegetarian Pasta", result.getFirst().getName());
+    }
+
+    @Test
+    void searchRecipes_WithTextSearch_ShouldFilterCorrectly() {
+        // Arrange
+        when(recipeRepository.findAll()).thenReturn(allRecipes);
+        RecipeSearchRequest searchRequest = RecipeSearchRequest.builder()
+                .textSearch("pasta")
+                .build();
+
+        // Act
+        List<Recipe> result = recipeService.searchRecipes(searchRequest);
+
+        // Assert
+        assertEquals(1, result.size());
+        assertEquals("Vegetarian Pasta", result.getFirst().getName());
+    }
+
+    @Test
+    void searchRecipes_WithTextSearchInIngredients_ShouldFilterCorrectly() {
+        // Arrange
+        when(recipeRepository.findAll()).thenReturn(allRecipes);
+        RecipeSearchRequest searchRequest = RecipeSearchRequest.builder()
+                .textSearch("beef")
+                .build();
+
+        // Act
+        List<Recipe> result = recipeService.searchRecipes(searchRequest);
+
+        // Assert
+        assertEquals(1, result.size());
+        assertEquals("Beef Stew", result.getFirst().getName());
+    }
+
+    @Test
+    void searchRecipes_WithTextSearchInInstructions_ShouldFilterCorrectly() {
+        // Arrange
+        when(recipeRepository.findAll()).thenReturn(allRecipes);
+        RecipeSearchRequest searchRequest = RecipeSearchRequest.builder()
+                .textSearch("simmer")
+                .build();
+
+        // Act
+        List<Recipe> result = recipeService.searchRecipes(searchRequest);
+
+        // Assert
+        assertEquals(1, result.size());
+        assertEquals("Beef Stew", result.getFirst().getName());
+    }
+
+    @Test
+    void searchRecipes_WithMultipleFilters_ShouldApplyAllFilters() {
+        // Arrange
+        when(recipeRepository.findAll()).thenReturn(allRecipes);
+        RecipeSearchRequest searchRequest = RecipeSearchRequest.builder()
+                .vegetarian(false)
+                .servings(NumericSearchCriteria.builder()
+                        .value(5)
+                        .comparisonType(NumericSearchCriteria.ComparisonType.MINIMUM)
+                        .build())
+                .textSearch("beef")
+                .build();
+
+        // Act
+        List<Recipe> result = recipeService.searchRecipes(searchRequest);
+
+        // Assert
+        assertEquals(1, result.size());
+        assertEquals("Beef Stew", result.getFirst().getName());
+    }
+
+    @Test
+    void searchRecipes_WithNoMatchingRecipes_ShouldReturnEmptyList() {
+        // Arrange
+        when(recipeRepository.findAll()).thenReturn(allRecipes);
+        RecipeSearchRequest searchRequest = RecipeSearchRequest.builder()
+                .vegetarian(true)
+                .textSearch("beef")
+                .build();
+
+        // Act
+        List<Recipe> result = recipeService.searchRecipes(searchRequest);
+
+        // Assert
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void searchRecipes_WithNoFilters_ShouldReturnAllRecipes() {
+        // Arrange
+        when(recipeRepository.findAll()).thenReturn(allRecipes);
+        RecipeSearchRequest searchRequest = RecipeSearchRequest.builder().build();
+
+        // Act
+        List<Recipe> result = recipeService.searchRecipes(searchRequest);
+
+        // Assert
+        assertEquals(2, result.size());
+    }
+
+    @Test
+    void searchRecipes_WithCaseInsensitiveTextSearch_ShouldMatchCorrectly() {
+        // Arrange
+        when(recipeRepository.findAll()).thenReturn(allRecipes);
+        RecipeSearchRequest searchRequest = RecipeSearchRequest.builder()
+                .textSearch("PASTA")
+                .build();
+
+        // Act
+        List<Recipe> result = recipeService.searchRecipes(searchRequest);
+
+        // Assert
+        assertEquals(1, result.size());
+        assertEquals("Vegetarian Pasta", result.getFirst().getName());
+    }
+
+    @Test
+    void searchRecipes_WithPartialTextMatch_ShouldMatchCorrectly() {
+        // Arrange
+        when(recipeRepository.findAll()).thenReturn(allRecipes);
+        RecipeSearchRequest searchRequest = RecipeSearchRequest.builder()
+                .textSearch("toma")  // Partial match for "tomato sauce"
+                .build();
+
+        // Act
+        List<Recipe> result = recipeService.searchRecipes(searchRequest);
+
+        // Assert
+        assertEquals(1, result.size());
+        assertEquals("Vegetarian Pasta", result.getFirst().getName());
+    }
+
+    @Test
+    void searchRecipes_WithEmptyRepository_ShouldReturnEmptyList() {
+        // Arrange
+        when(recipeRepository.findAll()).thenReturn(Collections.emptyList());
+        RecipeSearchRequest searchRequest = RecipeSearchRequest.builder()
+                .vegetarian(true)
+                .build();
+
+        // Act
+        List<Recipe> result = recipeService.searchRecipes(searchRequest);
+
+        // Assert
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void searchRecipes_WithNullSearchRequest_ShouldHandleGracefully() {
+        // Arrange
+        when(recipeRepository.findAll()).thenReturn(allRecipes);
+
+        // Act
+        List<Recipe> result = recipeService.searchRecipes(null);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(2, result.size());
+    }
+
+    @Test
+    void searchRecipes_WithExactServingsMatch_ShouldFilterCorrectly() {
+        // Arrange
+        when(recipeRepository.findAll()).thenReturn(allRecipes);
+        RecipeSearchRequest searchRequest = RecipeSearchRequest.builder()
+                .servings(NumericSearchCriteria.builder()
+                        .value(4)
+                        .comparisonType(NumericSearchCriteria.ComparisonType.EXACT)
+                        .build())
+                .build();
+
+        // Act
+        List<Recipe> result = recipeService.searchRecipes(searchRequest);
+
+        // Assert
+        assertEquals(1, result.size());
+        assertEquals("Vegetarian Pasta", result.getFirst().getName());
+    }
+
+    @Test
+    void searchRecipes_WithGreaterThanServings_ShouldFilterCorrectly() {
+        // Arrange
+        when(recipeRepository.findAll()).thenReturn(allRecipes);
+        RecipeSearchRequest searchRequest = RecipeSearchRequest.builder()
+                .servings(NumericSearchCriteria.builder()
+                        .value(4)
+                        .comparisonType(NumericSearchCriteria.ComparisonType.GREATER)
+                        .build())
+                .build();
+
+        // Act
+        List<Recipe> result = recipeService.searchRecipes(searchRequest);
+
+        // Assert
+        assertEquals(1, result.size());
+        assertEquals("Beef Stew", result.getFirst().getName());
+    }
+
+    @Test
+    void searchRecipes_WithLessThanPrepTime_ShouldFilterCorrectly() {
+        // Arrange
+        when(recipeRepository.findAll()).thenReturn(allRecipes);
+        RecipeSearchRequest searchRequest = RecipeSearchRequest.builder()
+                .prepTime(NumericSearchCriteria.builder()
+                        .value(20)
+                        .comparisonType(NumericSearchCriteria.ComparisonType.LESS)
+                        .build())
+                .build();
 
         // Act
         List<Recipe> result = recipeService.searchRecipes(searchRequest);
@@ -554,14 +546,22 @@ class RecipeServiceTest {
     void searchRecipes_WithComplexCombination_ShouldFilterCorrectly() {
         // Arrange
         when(recipeRepository.findAll()).thenReturn(allRecipes);
-        RecipeSearchRequest searchRequest = new RecipeSearchRequest();
-        searchRequest.setVegetarian(false);
-        searchRequest.setMinServings(4);
-        searchRequest.setMaxPrepTime(40);
-        searchRequest.setMaxCookTime(150);
-        searchRequest.setIncludeIngredients(Arrays.asList("beef", "onion"));
-        searchRequest.setExcludeIngredients(Collections.singletonList("chicken"));
-        searchRequest.setInstructionsContain("simmer");
+        RecipeSearchRequest searchRequest = RecipeSearchRequest.builder()
+                .vegetarian(false)
+                .servings(NumericSearchCriteria.builder()
+                        .value(4)
+                        .comparisonType(NumericSearchCriteria.ComparisonType.MINIMUM)
+                        .build())
+                .prepTime(NumericSearchCriteria.builder()
+                        .value(40)
+                        .comparisonType(NumericSearchCriteria.ComparisonType.MAXIMUM)
+                        .build())
+                .cookTime(NumericSearchCriteria.builder()
+                        .value(150)
+                        .comparisonType(NumericSearchCriteria.ComparisonType.MAXIMUM)
+                        .build())
+                .textSearch("simmer")
+                .build();
 
         // Act
         List<Recipe> result = recipeService.searchRecipes(searchRequest);
@@ -569,17 +569,5 @@ class RecipeServiceTest {
         // Assert
         assertEquals(1, result.size());
         assertEquals("Beef Stew", result.getFirst().getName());
-    }
-
-    @Test
-    void updateRecipe_WithNullUpdatedRecipe_ShouldHandleGracefully() {
-        // Act & Assert
-        assertDoesNotThrow(() -> recipeService.updateRecipe(1L, null));
-    }
-
-    @Test
-    void deleteRecipe_WithNullId_ShouldHandleGracefully() {
-        // Act & Assert
-        assertDoesNotThrow(() -> recipeService.deleteRecipe(null));
     }
 }

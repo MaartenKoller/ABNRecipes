@@ -1,20 +1,23 @@
 package nl.koller.maarten.abnrecipes.model;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
-
-import java.util.List;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class RecipeSearchRequest {
+    // Text search (will be applied to name, ingredients, instructions)
+    private String textSearch;
+
+    // Boolean search
     private Boolean vegetarian;
-    private Integer minServings;
-    private Integer maxPrepTime;
-    private Integer maxCookTime;
-    private List<String> includeIngredients;
-    private List<String> excludeIngredients;
-    private String instructionsContain;
+
+    // Numeric searches with comparison types
+    private NumericSearchCriteria servings;
+    private NumericSearchCriteria prepTime;
+    private NumericSearchCriteria cookTime;
 }
